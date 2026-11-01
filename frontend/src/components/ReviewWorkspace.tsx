@@ -147,6 +147,7 @@ export function ReviewWorkspace({
         busy={actions.busy}
         next={next}
         inspect={() => actions.save({ action: "inspect" })}
+        approve={() => actions.save({ action: "approve" })}
       />
       {query.error && (
         <div className="notice error" role="alert">

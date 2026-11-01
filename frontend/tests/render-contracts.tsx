@@ -191,8 +191,8 @@ console.log(
   "12 batch-selection validation/rendering assertions passed; metadata contracts only",
 );
 
-assert.match(selectionHtml("selective", ai), /not a full-paper LLM review/);
-assert.match(selectionHtml("full", ai), /all extracted readable text/);
+assert.doesNotMatch(selectionHtml("selective", ai), /seconds maximum|Ollama reviews|Rules and local semantic/);
+assert.doesNotMatch(selectionHtml("full", ai), /Refresh local LLM status|all extracted readable text/);
 assert.equal(startDisabled(selectionHtml("selective", ai)), false);
 assert.match(selectionHtml("off"), /Python scanner/);
 assert.match(selectionHtml("off"), /Scan mode/);

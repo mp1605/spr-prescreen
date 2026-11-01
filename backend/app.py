@@ -16,6 +16,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from backend.api.admin import admin_router
 from backend.api.ai import ai_router
 from backend.api.batches import batches_router
+from backend.api.document_folders import document_folders_router
 from backend.api.evaluation import evaluation_router
 from backend.api.export import export_router
 from backend.api.items import items_router
@@ -24,6 +25,7 @@ from backend.api.papers import papers_router
 from backend.api.system import system_router
 from backend.core.ai_config import AIConfig
 from backend.core.batch import BatchService
+from backend.core.batch_folders import BatchFolders
 from backend.core.engines.ai import AIEngine
 from backend.core.engines.local_bge import EmbeddingProvider
 from backend.core.engines.ollama import AIProvider
@@ -64,7 +66,16 @@ def create_app(
     service = BatchService(
         project_root, rules, engine, semantic=semantic, specificity=specificity, ai=ai
     )
-    reviews = ReviewStore(service.store)
+    folders = BatchFolders(service.store)
+    folders.migrate_existing()
+    reviews = ReviewStore(service.store, folders)
+
+    def organize(run_id: str, entry_id: str) -> None:
+        batch = service.store.read(run_id)
+        entry = service.store.entry(run_id, entry_id)
+        folders.attempt(batch, entry, reviews.state(run_id, entry_id))
+
+    service.on_entry_changed = organize
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -90,6 +101,7 @@ def create_app(
     app.state.policy_manager = manager
     app.state.rules_engine = engine
     app.state.batch_service = service
+    app.state.batch_folders = folders
     app.state.semantic_engine = semantic
     app.state.specificity_engine = specificity
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]"])
@@ -172,6 +184,7 @@ def create_app(
     app.include_router(admin_router(auth, manager))
     app.include_router(ai_router(configuration, auth))
     app.include_router(batches_router(service, reviews))
+    app.include_router(document_folders_router(service.store, reviews, folders))
     app.include_router(papers_router(service.store, reviews))
     app.include_router(items_router(service, reviews))
     app.include_router(evaluation_router(project_root))

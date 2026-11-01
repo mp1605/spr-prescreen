@@ -1,6 +1,10 @@
 import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Download, RefreshCw, BarChart3 } from "lucide-react";
+import { Download, BarChart3 } from "lucide-react";
+import {
+  HeaderRefresh,
+  PageHeaderActions,
+} from "../components/PageHeaderActions";
 import { get } from "../api/client";
 import type { ScorecardStatus } from "../api/evaluation";
 import { ScorecardReport } from "../components/ScorecardReport";
@@ -28,20 +32,13 @@ export function Scorecard() {
   }
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Evaluation scorecard</h1>
-          <p>Saved evaluation results</p>
-        </div>
-        <button
-          className="outline-button"
-          disabled={query.isFetching}
-          onClick={() => void query.refetch()}
-        >
-          <RefreshCw size={16} />
-          Refresh evaluation status
-        </button>
-      </div>
+      <PageHeaderActions>
+        <HeaderRefresh
+          label="Refresh evaluation status"
+          busy={query.isFetching}
+          refresh={() => void query.refetch()}
+        />
+      </PageHeaderActions>
       <div
         className="scorecard-tabs"
         role="tablist"

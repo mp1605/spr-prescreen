@@ -135,13 +135,16 @@ export interface Batch {
   rules_version: string;
   revision: number;
   entries: Entry[];
-  reviews: Record<string, { reviewed: number; complete: boolean }>;
+  reviews: Record<
+    string,
+    { reviewed: number; complete: boolean; approved?: boolean }
+  >;
 }
 export interface ReviewEvent {
   event_id: string;
   entry_id: string;
   finding_id: string | null;
-  action: "accept" | "override" | "inspect" | "undo";
+  action: "accept" | "override" | "inspect" | "approve" | "undo";
   reason: string | null;
   reviewer: string;
   utc: string;
@@ -154,6 +157,10 @@ export interface ReviewState {
   inspected: boolean;
   events: ReviewEvent[];
   feedback_examples: FeedbackExample[];
+  approved?: boolean;
+  approval_event?: ReviewEvent | null;
+  storage_file?: string | null;
+  storage_error?: string | null;
 }
 export interface SourceUnit {
   unit_id: number;

@@ -1,5 +1,6 @@
 """Download private, source-bound review artifacts and batch reports."""
 
+import json
 from pathlib import Path
 from typing import Literal
 
@@ -7,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import FileResponse
 
 from backend.core.annotation_notes import AnnotationError
+from backend.core.batch_index import index_csv, index_rows
 from backend.core.export import ExportNotReady, ExportService
 from backend.core.export_models import AnnotationManifest
 
@@ -15,9 +17,21 @@ def export_router(exports: ExportService) -> APIRouter:
     router = APIRouter(prefix="/api/batches/{run_id}")
 
     @router.get("/export/{format}")
-    def report(run_id: str, format: Literal["csv", "json"]) -> Response:
+    def report(
+        run_id: str, format: Literal["csv", "json"], layout: Literal["index", "audit"] = "index"
+    ) -> Response:
         try:
-            data, media, name = exports.report(run_id, format)
+            if layout == "audit":
+                data, media, name = exports.report(run_id, format)
+            else:
+                rows = index_rows(exports.store, run_id)
+                data = (
+                    (json.dumps(rows, ensure_ascii=False, indent=2) + "\n").encode()
+                    if format == "json"
+                    else index_csv(rows).encode("utf-8-sig")
+                )
+                media = "application/json" if format == "json" else "text/csv; charset=utf-8"
+                name = f"{run_id}-index.{format}"
         except AnnotationError as exc:
             raise HTTPException(409, str(exc)) from exc
         return Response(

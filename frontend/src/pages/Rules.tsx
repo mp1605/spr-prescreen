@@ -4,6 +4,10 @@ import { ExternalLink, Search } from "lucide-react";
 import { get, type Registry } from "../api/client";
 import { AdminAccess } from "../components/AdminAccess";
 import { QueryState } from "../components/QueryState";
+import {
+  HeaderRefresh,
+  PageHeaderActions,
+} from "../components/PageHeaderActions";
 
 export function Rules() {
   const [search, setSearch] = useState("");
@@ -34,14 +38,7 @@ export function Rules() {
     );
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Official rules</h1>
-          <p>Read-only policy reference · {query.data.policy_version}</p>
-        </div>
-        <a className="outline-button" href="#rule-management">
-          Manage indicators
-        </a>
+      <PageHeaderActions>
         <a
           className="outline-button"
           href="/api/rules/source"
@@ -50,8 +47,19 @@ export function Rules() {
         >
           Original guide <ExternalLink size={15} />
         </a>
-      </div>
+        <a className="outline-button" href="#rule-management">
+          Manage indicators
+        </a>
+        <HeaderRefresh
+          label="Refresh official rules"
+          busy={query.isFetching}
+          refresh={() => void query.refetch()}
+        />
+      </PageHeaderActions>
       <div className="notice">
+        <p className="policy-version">
+          Read-only policy reference · {query.data.policy_version}
+        </p>
         List 1 runs first. List 2 always follows, including when List 1
         identifies a flag. The guide has no List 1 item 2.
       </div>

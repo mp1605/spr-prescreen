@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import multiprocessing
 import signal
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from pathlib import Path
 from time import perf_counter
@@ -65,6 +66,11 @@ class BatchService:
         self.workers = ThreadPoolExecutor(max_workers=2, thread_name_prefix="spr-batch")
         self.parsers: ProcessPoolExecutor | None = None
         self.store.recover()
+        self.on_entry_changed: Callable[[str, str], None] | None = None
+
+    def organize(self, run_id: str, entry_id: str) -> None:
+        if self.on_entry_changed:
+            self.on_entry_changed(run_id, entry_id)
 
     def submit(self, run_id: str, entry: BatchEntry) -> None:
         with self.store.lock:
@@ -97,6 +103,8 @@ class BatchService:
             self.store.update(
                 run_id, current.model_copy(update={"phase": phase, "message": message})
             )
+            if phase == "failed":
+                self.organize(run_id, original.entry_id)
 
     def install(self, context: ScreeningContext) -> None:
         with self.store.lock:
@@ -164,6 +172,7 @@ class BatchService:
                         }
                     ),
                 )
+                self.organize(run_id, original.entry_id)
         except Cancelled:
             return
         except Exception:
@@ -187,6 +196,7 @@ class BatchService:
                             }
                         ),
                     )
+                    self.organize(run_id, entry.entry_id)
 
     def retry(self, run_id: str, entry_id: str) -> None:
         with self.store.lock:

@@ -40,6 +40,7 @@ class BatchRecord(StrictModel):
 class ReviewProgress(StrictModel):
     reviewed: int = Field(ge=0)
     complete: bool
+    approved: bool = False
 
 
 class BatchView(BatchRecord):
@@ -50,7 +51,7 @@ class ReviewEvent(StrictModel):
     event_id: str
     entry_id: str
     finding_id: str | None = None
-    action: Literal["accept", "override", "inspect", "undo"]
+    action: Literal["accept", "override", "inspect", "approve", "undo"]
     reason: str | None = Field(default=None, max_length=2000)
     reviewer: Text = Field(max_length=100)
     utc: datetime
@@ -64,11 +65,15 @@ class ReviewState(StrictModel):
     inspected: bool
     events: tuple[ReviewEvent, ...]
     feedback_examples: tuple[FeedbackExample, ...] = ()
+    approved: bool = False
+    approval_event: ReviewEvent | None = None
+    storage_file: str | None = None
+    storage_error: str | None = None
 
 
 class ReviewCommand(StrictModel):
     revision: int = Field(ge=0)
-    action: Literal["accept", "override", "inspect", "undo"]
+    action: Literal["accept", "override", "inspect", "approve", "undo"]
     finding_id: str | None = None
     reviewer: Text = Field(max_length=100)
     reason: str | None = Field(default=None, max_length=2000)

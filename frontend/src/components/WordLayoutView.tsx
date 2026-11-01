@@ -66,16 +66,6 @@ export function WordLayoutView({
   const unmapped = findings.filter((f) => data.unmapped.includes(f.finding_id));
   return (
     <>
-      <div className="word-layout-note">
-        <strong>Paginated Word preview</strong>
-        <span>
-          Prepared in {data.seconds.toFixed(1)} seconds · cached locally
-        </span>
-        <small>
-          Fonts and Word-specific features may render differently. The
-          downloaded DOCX retains the original formatting.
-        </small>
-      </div>
       {data.units.map((unit) => (
         <PdfPage
           key={unit.unit_id}

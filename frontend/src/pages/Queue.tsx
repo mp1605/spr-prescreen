@@ -7,6 +7,7 @@ import { loadBatches, send, terminal, type Batch } from "../api/workflow";
 import { UploadBatch } from "../components/UploadBatch";
 import { ExportDownloads } from "../components/ExportDownloads";
 import { BatchSummary } from "../components/BatchSummary";
+import { BatchDocuments } from "../components/BatchDocuments";
 import { QueueFilters } from "../components/QueueFilters";
 import { QueueTable } from "../components/QueueTable";
 import { QueryState } from "../components/QueryState";
@@ -78,20 +79,7 @@ export function Queue() {
   });
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Batch & queue</h1>
-        </div>
-      </div>
       <UploadBatch onCreated={created} />
-      <div className="scope-note">
-        <Layers size={16} />
-        <span>
-          List 1, then List 2 · Source-bound evidence sets red / yellow
-          priority. Generic and judgment-dependent matches remain yellow.
-        </span>
-        <span className="local-label">LOCAL PROCESSING</span>
-      </div>
       {query.isPending ? (
         <QueryState error={null} retry={refresh} />
       ) : (
@@ -113,6 +101,11 @@ export function Queue() {
             select={(id) => setParams({ batch: id })}
           />
           <ExportDownloads base={`/api/batches/${batch.run_id}`} />
+          <BatchDocuments
+            key={batch.run_id}
+            runId={batch.run_id}
+            active={active}
+          />
           <section className="queue-panel">
             <div className="queue-heading">
               <div>
@@ -209,10 +202,6 @@ export function Queue() {
               }}
             />
           </section>
-          <p className="source-note">
-            {batch.rules_version} · {batch.run_id} · Raw screening results
-            remain unchanged by review decisions.
-          </p>
         </>
       ) : (
         !query.isPending &&

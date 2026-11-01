@@ -15,6 +15,7 @@ export function ReviewToolbar({
   busy,
   next,
   inspect,
+  approve,
 }: {
   runId: string;
   entry: Entry;
@@ -26,8 +27,12 @@ export function ReviewToolbar({
   busy: boolean;
   next: string;
   inspect: () => void;
+  approve: () => void;
 }) {
   const paper = entry.result!;
+  const unresolved = paper.findings.filter(
+    (flag) => !state.decisions[flag.finding_id],
+  ).length;
   return (
     <>
       <Link className="back-link" to={`/?batch=${runId}`}>
@@ -58,16 +63,27 @@ export function ReviewToolbar({
       <div className="review-toolbar">
         <div>
           <strong>
-            Reviewed {Object.keys(state.decisions).length}/
-            {paper.flag_count.total}
+            {paper.color === "green"
+              ? state.approved
+                ? "Human review complete"
+                : "Awaiting your review"
+              : `Reviewed ${Object.keys(state.decisions).length}/${paper.flag_count.total}`}
           </strong>
           <progress
             max={Math.max(1, paper.flag_count.total)}
-            value={Object.keys(state.decisions).length}
-            aria-label="Flags reviewed"
+            value={
+              paper.color === "green"
+                ? Number(!!state.approved)
+                : Object.keys(state.decisions).length
+            }
+            aria-label={
+              paper.color === "green" ? "Document approved" : "Flags reviewed"
+            }
           />
           <small>
-            Accept or override a flag; the screening result stays unchanged.
+            {paper.color === "green"
+              ? "Inspect the document, then approve it to file it in Approved."
+              : "Accept or override a flag; the screening result stays unchanged."}
           </small>
         </div>
         <label className="reviewer-input">
@@ -89,14 +105,52 @@ export function ReviewToolbar({
         </button>
         <button
           className="outline-button"
-          disabled={busy || state.inspected || !reviewer.trim()}
-          onClick={inspect}
+          disabled={
+            busy ||
+            !reviewer.trim() ||
+            (paper.color === "green"
+              ? state.approved === undefined || state.approved
+              : state.inspected || unresolved > 0)
+          }
+          onClick={paper.color === "green" ? approve : inspect}
+          title={
+            paper.color !== "green" && unresolved > 0
+              ? "Accept or override every flag before recording source inspection."
+              : undefined
+          }
         >
-          {state.inspected
-            ? "Source inspection recorded"
-            : "Mark source inspected"}
+          {paper.color === "green"
+            ? state.approved
+              ? "Reviewed & approved"
+              : "Mark reviewed & approve"
+            : state.inspected
+              ? "Source inspection recorded"
+              : "Mark source inspected"}
         </button>
       </div>
+      {paper.color !== "green" && unresolved > 0 && (
+        <p className="review-hint" role="status">
+          Accept or override the remaining {unresolved} flag
+          {unresolved === 1 ? "" : "s"} to enable source inspection.
+        </p>
+      )}
+      {state.approved && state.approval_event && (
+        <div className="notice" role="status">
+          <strong>Approved by {state.approval_event.reviewer}</strong> ·{" "}
+          {new Date(state.approval_event.utc).toLocaleString()}
+          {state.storage_file && (
+            <p>
+              Saved in: <code>{state.storage_file}</code>
+            </p>
+          )}
+        </div>
+      )}
+      {state.storage_error && (
+        <p className="notice error" role="alert">
+          {state.storage_error} Return to the queue to update this batch’s
+          folders.
+        </p>
+      )}
       {!reviewer.trim() && (
         <p className="review-hint">
           Enter a reviewer name to record decisions in the local audit trail.

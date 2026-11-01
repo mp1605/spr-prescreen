@@ -24,7 +24,9 @@ export function ReviewAudit({
             <span>
               {event.finding_id
                 ? `Flag ${flags.findIndex((flag) => flag.finding_id === event.finding_id) + 1}`
-                : "Source inspection"}
+                : event.action === "approve"
+                  ? "Document approval"
+                  : "Source inspection / document review"}
               {event.reason ? ` · ${event.reason}` : ""}
             </span>
           </li>

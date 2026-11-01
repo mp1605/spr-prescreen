@@ -98,7 +98,7 @@ def test_real_upload_ai_evidence_exports_and_annotation_roundtrip(
         ).status_code
         == 200
     )
-    report = client.get(f"/api/batches/{batch['run_id']}/export/json").json()
+    report = client.get(f"/api/batches/{batch['run_id']}/export/json?layout=audit").json()
     assert report["batch"]["ai_settings"]["model_digest"] == DIGEST
     assert report["batch"]["entries"][0]["result"]["ai"]["pipeline_digest"]
     copy = client.get(base + "/annotated?notes=true")
@@ -111,7 +111,10 @@ def test_real_upload_ai_evidence_exports_and_annotation_roundtrip(
             page = document[0]
             assert any("AI verified source quote" in a.info["content"] for a in page.annots())
     assert hashlib.sha256(original.read_bytes()).hexdigest() == before
-    assert b"ai_evidence_json" in client.get(f"/api/batches/{batch['run_id']}/export/csv").content
+    assert (
+        b"ai_evidence_json"
+        in client.get(f"/api/batches/{batch['run_id']}/export/csv?layout=audit").content
+    )
 
 
 def test_timeout_has_real_ai_stage_keeps_baseline_and_is_not_green(

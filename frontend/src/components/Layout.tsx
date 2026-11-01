@@ -12,10 +12,24 @@ import {
 } from "lucide-react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { HeaderActionsContext } from "./PageHeaderActions";
 
 export function Layout() {
   const { pathname } = useLocation();
+  const pageTitle = pathname.startsWith("/review/")
+    ? "Document review"
+    : ((
+        {
+          "/": "Batch Upload",
+          "/rules": "Official rules",
+          "/items": "Review by item",
+          "/scorecard": "Evaluation scorecard",
+          "/system": "System status",
+          "/offline": "Offline status",
+        } as Record<string, string>
+      )[pathname] ?? "Review workspace");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [actionsHost, setActionsHost] = useState<HTMLDivElement | null>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -48,7 +62,7 @@ export function Layout() {
     setDark(value);
   }
   return (
-    <>
+    <HeaderActionsContext.Provider value={actionsHost}>
       <a className="skip" href="#main">
         Skip to content
       </a>
@@ -119,7 +133,7 @@ export function Layout() {
             }}
           >
             <NavLink to="/" end>
-              <PanelLeft size={18} /> Batch & queue
+              <PanelLeft size={18} /> Batch Upload
             </NavLink>
             <NavLink to="/rules">
               <BookOpen size={18} /> Official rules{" "}
@@ -151,15 +165,23 @@ export function Layout() {
           </div>
         </aside>
         <div className="content-wrap">
+          <header className="page-topbar">
+            <h1 className="topbar-title">{pageTitle}</h1>
+            {pathname === "/" ? (
+              <span className="auix-logo" role="img" aria-label="AUiX">
+                <span aria-hidden="true">
+                  AUi<span className="auix-logo-x">X</span>
+                </span>
+              </span>
+            ) : (
+              <div className="page-header-actions" ref={setActionsHost} />
+            )}
+          </header>
           <main id="main" tabIndex={-1}>
             <Outlet />
           </main>
-          <footer>
-            Decision support for human reviewers{" "}
-            <span>Release decisions are never made by this tool.</span>
-          </footer>
         </div>
       </div>
-    </>
+    </HeaderActionsContext.Provider>
   );
 }

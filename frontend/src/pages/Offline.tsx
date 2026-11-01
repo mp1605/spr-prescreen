@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { RefreshCw, WifiOff } from "lucide-react";
+import { WifiOff } from "lucide-react";
+import {
+  HeaderRefresh,
+  PageHeaderActions,
+} from "../components/PageHeaderActions";
 import { get } from "../api/client";
 import { QueryState } from "../components/QueryState";
 
@@ -38,19 +42,13 @@ export function Offline() {
   const data = query.data;
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Offline status</h1>
-        </div>
-        <button
-          className="outline-button"
-          disabled={query.isFetching}
-          onClick={() => void query.refetch()}
-        >
-          <RefreshCw size={16} />
-          {query.isFetching ? "Refreshing…" : "Refresh offline status"}
-        </button>
-      </div>
+      <PageHeaderActions>
+        <HeaderRefresh
+          label="Refresh offline status"
+          busy={query.isFetching}
+          refresh={() => void query.refetch()}
+        />
+      </PageHeaderActions>
       {query.error && (
         <p className="notice error" role="alert">
           Refresh failed. Showing the last received status.

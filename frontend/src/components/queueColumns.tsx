@@ -107,6 +107,17 @@ export function queueColumns(
             </button>
           );
         if (!entry.result) return "—";
+        if (entry.result.color === "green")
+          return (
+            <Link to={`/review/${batch.run_id}/${entry.entry_id}`}>
+              {state?.approved ? "Approved" : "Review & approve"}
+              <small>
+                {state?.approved
+                  ? "Filed in Approved"
+                  : "Awaiting human approval"}
+              </small>
+            </Link>
+          );
         return (
           <span>
             {state?.complete

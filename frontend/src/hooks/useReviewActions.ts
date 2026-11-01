@@ -37,7 +37,11 @@ export function useReviewActions(
     onMutate: async (action) => {
       await client.cancelQueries({ queryKey: key });
       const previous = client.getQueryData<ReviewState>(key);
-      if (previous) {
+      if (
+        previous &&
+        action.action !== "approve" &&
+        !(action.action === "undo" && previous.approved && !action.finding_id)
+      ) {
         const event: ReviewEvent = {
           event_id: "pending",
           entry_id: "",
@@ -52,6 +56,7 @@ export function useReviewActions(
         const events = [...previous.events, event],
           active = activeEvents(events);
         client.setQueryData<ReviewState>(key, {
+          ...previous,
           revision: previous.revision + 1,
           events,
           decisions: Object.fromEntries(
@@ -59,7 +64,9 @@ export function useReviewActions(
               .filter((value) => value.finding_id)
               .map((value) => [value.finding_id!, value]),
           ),
-          inspected: active.some((value) => value.action === "inspect"),
+          inspected: active.some((value) =>
+            ["inspect", "approve"].includes(value.action),
+          ),
           feedback_examples: previous.feedback_examples.filter((example) =>
             active.some(
               (event) =>
@@ -79,15 +86,20 @@ export function useReviewActions(
     onSuccess: (value, action) => {
       client.setQueryData(key, value);
       setToast(
-        action.action === "undo"
-          ? "Decision undone. Audit history retained."
-          : action.action === "inspect"
-            ? "Source inspection recorded."
-            : action.action === "accept"
-              ? "Flag accepted."
-              : "Flag overridden. Raw finding retained.",
+        value.storage_error
+          ? "Review saved. Document folder needs updating; see the storage message."
+          : action.action === "approve"
+            ? "Reviewed and approved. Document saved in Approved."
+            : action.action === "undo"
+              ? "Decision undone. Audit history retained."
+              : action.action === "inspect"
+                ? "Source inspection recorded."
+                : action.action === "accept"
+                  ? "Flag accepted."
+                  : "Flag overridden. Raw finding retained.",
       );
       void client.invalidateQueries({ queryKey: ["batches"] });
+      void client.invalidateQueries({ queryKey: ["batch-folders"] });
       void client.invalidateQueries({ queryKey: ["item-index"] });
       void client.invalidateQueries({ queryKey: ["item-page"] });
     },

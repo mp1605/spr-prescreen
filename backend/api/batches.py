@@ -50,7 +50,9 @@ def batches_router(service: BatchService, reviews: ReviewStore) -> APIRouter:
                 )
                 if paper and paper.incomplete_reasons:
                     complete = complete and state.inspected
-                progress[entry.entry_id] = ReviewProgress(reviewed=count, complete=complete)
+                progress[entry.entry_id] = ReviewProgress(
+                    reviewed=count, complete=complete, approved=state.approved
+                )
             result.append(BatchView(**batch.model_dump(), reviews=progress))
         return result
 

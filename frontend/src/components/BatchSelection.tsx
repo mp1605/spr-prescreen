@@ -54,18 +54,12 @@ export function BatchSelection({
             ))}
           </select>
         </div>
-        <p>
-          Rules and local semantic screening always run. Local LLM adds an
-          optional review step.
-        </p>
-        {useAI && (
+        {useAI && (aiLoading || !eligible) && (
           <>
             <p role="status">
               {aiLoading
                 ? "Checking local Ollama…"
-                : eligible
-                  ? `${ai?.settings.model} · ${ai?.settings.timeout_seconds} seconds maximum per paper, including queue wait.`
-                  : "Local LLM is not ready. Start Ollama with the configured model, then refresh—or choose Python scanner."}
+                : "Local LLM is not ready. Start Ollama, then retry—or choose Python scanner."}
             </p>
             <button
               type="button"
@@ -73,13 +67,8 @@ export function BatchSelection({
               disabled={busy || aiLoading}
               onClick={refreshAI}
             >
-              Refresh local LLM status
+              Retry AI connection
             </button>
-            <p className="subtle">
-              {scanMode === "selective"
-                ? "Ollama reviews baseline-flagged passages and one neighboring segment on each side within the same section. With no candidates, the AI step is skipped. This is not a full-paper LLM review."
-                : "Ollama reviews all extracted readable text. If the full input cannot fit, the AI step reports incomplete."}
-            </p>
           </>
         )}
       </div>

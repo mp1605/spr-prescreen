@@ -37,7 +37,7 @@ def test_json_csv_snapshots_include_all_entries_and_reversible_decisions(client,
         },
     )
     assert response.status_code == 200
-    report_response = client.get(f"/api/batches/{batch['run_id']}/export/json")
+    report_response = client.get(f"/api/batches/{batch['run_id']}/export/json?layout=audit")
     assert (
         report_response.status_code == 200
         and "attachment" in report_response.headers["content-disposition"]
@@ -51,7 +51,7 @@ def test_json_csv_snapshots_include_all_entries_and_reversible_decisions(client,
     assert report["source_sha256"][entry] == hashlib.sha256(data).hexdigest()
     assert report["source_integrity"][entry] == "verified"
     assert report["source_sha256"][rejected] is None
-    csv_response = client.get(f"/api/batches/{batch['run_id']}/export/csv")
+    csv_response = client.get(f"/api/batches/{batch['run_id']}/export/csv?layout=audit")
     assert csv_response.status_code == 200 and csv_response.content.startswith(b"\xef\xbb\xbf")
     rows = list(csv.DictReader(io.StringIO(csv_response.content.decode("utf-8-sig"))))
     overridden = next(r for r in rows if r["finding_id"] == flag["finding_id"])
@@ -72,7 +72,7 @@ def test_json_csv_snapshots_include_all_entries_and_reversible_decisions(client,
         },
     )
     assert undone.status_code == 200
-    after = client.get(f"/api/batches/{batch['run_id']}/export/json").json()
+    after = client.get(f"/api/batches/{batch['run_id']}/export/json?layout=audit").json()
     assert after["reviews"][entry]["decisions"] == {}
     assert len(after["reviews"][entry]["events"]) == 2
     assert report["reviews"][entry]["revision"] == 1 and after["reviews"][entry]["revision"] == 2
@@ -153,12 +153,12 @@ def test_missing_and_changed_sources_leave_report_available_but_refuse_annotatio
     source = project_root / "runs" / batch["run_id"] / entry / "source.bin"
     source.write_bytes(b"changed")
     assert client.get(base + "/annotated").status_code == 422
-    report = client.get(f"/api/batches/{batch['run_id']}/export/json").json()
+    report = client.get(f"/api/batches/{batch['run_id']}/export/json?layout=audit").json()
     assert report["source_integrity"][entry] == "mismatch"
     assert report["source_sha256"][entry] != report["current_source_sha256"][entry]
     source.unlink()
     assert client.get(base + "/annotated").status_code == 422
-    report = client.get(f"/api/batches/{batch['run_id']}/export/json").json()
+    report = client.get(f"/api/batches/{batch['run_id']}/export/json?layout=audit").json()
     assert report["source_integrity"][entry] == "unavailable"
     assert report["source_sha256"][entry] and report["current_source_sha256"][entry] is None
 
@@ -168,7 +168,7 @@ def test_flagless_and_incomplete_rows_are_kept(client, orthogonal_semantics):
         client,
         upload(client, [("heading.docx", word("List 1")), ("corrupt.pdf", b"not pdf")])["run_id"],
     )
-    response = client.get(f"/api/batches/{batch['run_id']}/export/csv")
+    response = client.get(f"/api/batches/{batch['run_id']}/export/csv?layout=audit")
     rows = list(csv.DictReader(io.StringIO(response.content.decode("utf-8-sig"))))
     assert len(rows) == 2 and rows[0]["paper_color"] == "green"
     assert rows[0]["row_type"] == "paper" and rows[0]["flag_total"] == "0"
@@ -188,7 +188,7 @@ def test_unfinished_snapshot_has_no_fabricated_result_and_annotation_not_ready(c
     assert saved.phase == "cancelled"
     base = base_for(batch)
     assert client.get(base + "/annotated").status_code == 409
-    report = client.get(f"/api/batches/{batch['run_id']}/export/json").json()
+    report = client.get(f"/api/batches/{batch['run_id']}/export/json?layout=audit").json()
     assert report["batch"]["entries"][0]["result"] is None
     assert report["source_integrity"][saved.entry_id] == "not_screened"
 

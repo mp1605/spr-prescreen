@@ -86,7 +86,13 @@ export function FlagList({
                 : "No flags found"}
             </h3>
             <p>List 1 and List 2 checked. A reviewer still decides.</p>
-            <p>Inspect the source, then record that inspection above.</p>
+            <p>
+              {paper.color === "green"
+                ? state.approved
+                  ? "This document has been reviewed and filed in Approved."
+                  : "Inspect the source, then select Mark reviewed & approve above."
+                : "Inspect the source, then record that inspection above."}
+            </p>
           </div>
         )}
       </div>

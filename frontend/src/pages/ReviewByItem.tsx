@@ -1,6 +1,9 @@
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
+import {
+  HeaderRefresh,
+  PageHeaderActions,
+} from "../components/PageHeaderActions";
 import { get, type Registry } from "../api/client";
 import {
   itemGet,
@@ -107,19 +110,13 @@ export function ReviewByItem() {
     );
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Review by item</h1>
-        </div>
-        <button
-          className="outline-button"
-          disabled={index.isFetching}
-          onClick={refresh}
-        >
-          <RefreshCw size={16} />
-          Refresh findings
-        </button>
-      </div>
+      <PageHeaderActions>
+        <HeaderRefresh
+          label="Refresh findings"
+          busy={index.isFetching}
+          refresh={refresh}
+        />
+      </PageHeaderActions>
       <ItemReviewFilters
         run={run}
         item={item}

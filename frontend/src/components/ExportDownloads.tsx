@@ -98,7 +98,7 @@ export function ExportDownloads({
           ? `Highlighted copy downloaded · review revision ${revision ?? manifest?.review_revision}. Raw screening colors retained.`
           : kind === "annotation-manifest"
             ? "Copy details downloaded, including original and annotated SHA-256 hashes."
-            : "Report downloaded. This snapshot includes the entire batch and its current review history.",
+            : "Batch summary downloaded: one row per paper, with scanner results.",
       );
     } catch (err) {
       setError(
@@ -133,10 +133,7 @@ export function ExportDownloads({
       <div className="export-description">
         <strong>{format ? "Downloads" : "Export this batch"}</strong>
         {!format && (
-          <span>
-            Entire batch, including entries outside the current filters.
-            Findings and reviewer decisions stay separate.
-          </span>
+          <span>One row per paper · scanner results · five columns</span>
         )}
       </div>
       {format && (

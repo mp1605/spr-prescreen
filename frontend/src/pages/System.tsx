@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
+import {
+  HeaderRefresh,
+  PageHeaderActions,
+} from "../components/PageHeaderActions";
 import { get, type SystemStatus } from "../api/client";
 import { AIControls } from "../components/AIControls";
 import { QueryState } from "../components/QueryState";
@@ -16,19 +19,13 @@ export function System() {
   const status = query.data;
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>System status</h1>
-        </div>
-        <button
-          className="outline-button"
-          onClick={() => void query.refetch()}
-          disabled={query.isFetching}
-        >
-          <RefreshCw size={16} />{" "}
-          {query.isFetching ? "Refreshing…" : "Refresh status"}
-        </button>
-      </div>
+      <PageHeaderActions>
+        <HeaderRefresh
+          label="Refresh system status"
+          busy={query.isFetching}
+          refresh={() => void query.refetch()}
+        />
+      </PageHeaderActions>
       {query.error && (
         <p className="notice error" role="alert">
           Refresh failed. Showing the last received status.

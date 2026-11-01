@@ -47,6 +47,11 @@ COLUMNS = (
     "review_utc",
     "review_reason",
     "source_inspected",
+    "reviewer_approved",
+    "approval_reviewer",
+    "approval_utc",
+    "organized_document_path",
+    "document_storage_error",
     "source_inspection_history_json",
     "review_history_json",
     "generated_utc",
@@ -88,6 +93,13 @@ def report_csv(report: ExportReport) -> str:
             "flag_total": paper.flag_count.total if paper else None,
             "review_revision": review.revision,
             "source_inspected": review.inspected,
+            "reviewer_approved": review.approved,
+            "approval_reviewer": review.approval_event.reviewer if review.approval_event else None,
+            "approval_utc": review.approval_event.utc.isoformat()
+            if review.approval_event
+            else None,
+            "organized_document_path": review.storage_file,
+            "document_storage_error": review.storage_error,
             "source_inspection_history_json": json.dumps(
                 [e.model_dump(mode="json") for e in review.events if e.finding_id is None],
                 ensure_ascii=True,
