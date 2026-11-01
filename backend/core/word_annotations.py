@@ -86,9 +86,15 @@ def highlighted_run(
             props = clone.get_or_add_rPr()
             for old in list(props.findall(qn("w:highlight"))):
                 props.remove(old)
-            props.get_or_add_highlight().set(
-                qn("w:val"), "red" if any(f.color == "red" for f in active) else "yellow"
-            )
+            for old in list(props.findall(qn("w:shd"))):
+                props.remove(old)
+            red = any(f.color == "red" for f in active)
+            props.get_or_add_highlight().set(qn("w:val"), "red" if red else "yellow")
+            shading = OxmlElement("w:shd")
+            shading.set(qn("w:val"), "clear")
+            shading.set(qn("w:color"), "auto")
+            shading.set(qn("w:fill"), "FF0000" if red else "FFFF00")
+            props.append(shading)
         pieces.append(RunPiece(clone, text_start + left, text_start + right))
     cursor = 0
     for child in children:

@@ -262,6 +262,7 @@ class BatchFolders:
                 and previous_record.get("renderer_digest") == renderer_digest()
                 and previous_record.get("review_revision") == state.revision
                 and previous_record.get("copy_type") == copy_type
+                and previous_record.get("notes_included") is False
             ):
                 output = cached
                 warnings = tuple(previous_record.get("warnings", []))
@@ -272,7 +273,7 @@ class BatchFolders:
                         self.store.parsed(batch.run_id, entry.entry_id),
                         entry.result,
                         state,
-                        notes=True,
+                        notes=False,
                     )
                     output, warnings = artifact.data, artifact.warnings
                 except (AnnotationError, OSError, ValueError):
@@ -342,6 +343,10 @@ class BatchFolders:
             else state.revision,
             "requested_review_revision": state.revision,
             "copy_type": copy_type,
+            "notes_included": False,
+            "review_decisions": {
+                key: value.model_dump(mode="json") for key, value in state.decisions.items()
+            },
             "active_highlights": active_count,
             "overridden_findings": override_count,
             "warnings": list(warnings),

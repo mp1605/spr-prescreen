@@ -74,12 +74,19 @@ def test_managed_copy_and_download_apply_accept_override_and_undo(client, flagge
     details = client.get(base + "/annotation-manifest?notes=true").json()
     assert details["findings_annotated"] == 1 and details["overridden_findings"] == 1
     if extension == "docx":
+        assert len(Document(io.BytesIO(copy.read_bytes())).comments) == 0
+        with ZipFile(io.BytesIO(copy.read_bytes())) as archive:
+            tree = etree.fromstring(archive.read("word/document.xml"))
+        ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+        assert set(tree.xpath("//w:rPr/w:shd/@w:fill", namespaces=ns)) == {"FFFF00"}
         assert any(
             "Reviewer decision: override" in comment.text
-            for comment in Document(io.BytesIO(copy.read_bytes())).comments
+            for comment in Document(io.BytesIO(downloaded.content)).comments
         )
     else:
         with pymupdf.open(stream=copy.read_bytes(), filetype="pdf") as doc:
+            assert all(annotation.type[0] == 8 for annotation in doc[0].annots())
+        with pymupdf.open(stream=downloaded.content, filetype="pdf") as doc:
             assert any(
                 "Reviewer decision: override" in annotation.info.get("content", "")
                 for annotation in doc[0].annots()
@@ -103,6 +110,8 @@ def test_managed_copy_and_download_apply_accept_override_and_undo(client, flagge
     assert record["source_sha256"] == hashlib.sha256(original).hexdigest()
     assert record["document_sha256"] == hashlib.sha256(copy.read_bytes()).hexdigest()
     assert record["review_revision"] == state["revision"] and record["active_highlights"] == 0
+    assert record["notes_included"] is False
+    assert all(decision["action"] == "override" for decision in record["review_decisions"].values())
     before = copy.read_bytes()
     assert client.post(f"/api/batches/{batch['run_id']}/folders").status_code == 200
     assert copy.read_bytes() == before
