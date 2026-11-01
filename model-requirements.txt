@@ -1,0 +1,1 @@
+en-core-web-sm==3.8.0 --hash=sha256:1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85

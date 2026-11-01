@@ -1,0 +1,26 @@
+[project]
+name = "spr-prescreen"
+version = "0.0.0"
+description = "Offline Security and Policy Review pre-screen; human release decisions only"
+requires-python = ">=3.11,<3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers --import-mode=importlib"
+markers = ["models: verifies cached offline model inference", "live_ai: opt-in real local Ollama validation"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["backend"]
+
+[tool.ruff.format]
+quote-style = "double"

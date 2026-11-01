@@ -1,0 +1,24 @@
+schema_version: 1
+host: 127.0.0.1
+port: 8501
+max_file_mb: 25
+max_batch_files: 100
+semantic:
+  model: BAAI/bge-small-en-v1.5
+  cache_dir: models/fastembed
+  high_threshold: 0.86
+  mid_threshold: 0.84
+  calibrated: false
+ai:
+  enabled: true
+  scope: full
+  model: qwen2.5:3b
+  model_digest: 357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b
+  context_tokens: 32768
+  max_output_tokens: 2048
+  endpoint: http://127.0.0.1:11434
+  timeout_seconds: 20
+evaluation:
+  mode: blind
+  sponsor_material_access: false
+  exemplar_source: official_rules_only

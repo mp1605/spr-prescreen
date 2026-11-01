@@ -1,0 +1,678 @@
+# Official wording preserved. Engineering detectors contain no test-derived hints or exemplars.
+policy_version: LOE2-guide-v2-E1
+source_document: docs/official-lists.pdf
+source_sha256: ef7162e06e90663b9ad584f98961c2dc541b29cf6590b13e4b1ff5fd3536a681
+list_execution_order:
+- list1
+- list2
+short_circuit: false
+color_rules:
+  list1_any_hit: red
+  list2_clear_match: red
+  list2_possible_match: yellow
+  judgment_item_default: yellow
+  unreadable_or_uncertain: yellow
+  aggregation: worst_color_wins
+list1:
+- id: L1-1
+  category: Classified information
+  text: Anything classified for national defense or foreign policy reasons
+  examples: 'Classification markings; details that together could reveal something classified Example
+    classification markings: (C) (S) (TS) (CUI) It doesn’t matter if there is more to the marking, it
+    would still mark as a red flag. Ex: (S//NF/PROPIN) (C//FRD) (//GBR S) (TS//SI/TK) (S//RD) (S//REL)
+    (TS//REL TO USA, AUS, CAN, GBR) (S//RD-N)'
+  source_pages:
+  - 1
+  detectors:
+  - kind: regex
+    name: Classification portion marking
+    item_id: L1-1
+    pattern: \((?:TS|CUI|S|C)(?:\s*//[^)\r\n]{0,160})?\)|\(//[A-Z]{3}\s+(?:TS|S|C)(?://[^)\r\n]{0,160})?\)
+    guard: classification_marking
+  - kind: regex
+    name: Classification or control banner
+    item_id: L1-1
+    pattern: \b(?:TOP\s+SECRET|SECRET|CONFIDENTIAL|CUI|FOUO|CONTROLLED\s+UNCLASSIFIED\s+INFORMATION|FOR\s+OFFICIAL\s+USE\s+ONLY)\b
+    case_sensitive: true
+- id: L1-3
+  category: Protected by another law
+  text: Information a different law says must be withheld
+  examples: Names, ranks, and duty details of personnel currently in overseas, sensitive, or routinely
+    deployed units; sensitive information from foreign governments; critical infrastructure security details
+    (specifics about a particular locations defensive posture, etc.)
+  source_pages:
+  - 1
+  detectors:
+  - kind: keywords
+    name: Protected personnel or foreign-government detail
+    item_id: L1-3
+    terms:
+    - personnel currently in overseas
+    - sensitive information from foreign governments
+    - critical infrastructure security details
+  - kind: regex
+    name: Sensitive personnel context
+    item_id: L1-3
+    pattern: \b(?:names?|ranks?|duty\s+details?|personnel)\b.{0,120}\b(?:overseas|sensitive\s+units?|routinely\s+deployed|foreign\s+government)\b
+  - kind: regex
+    name: Specific infrastructure defense context
+    item_id: L1-3
+    pattern: \b(?:critical\s+infrastructure|base|facility|installation|location)\b.{0,120}\b(?:security\s+(?:details|plans)|defensive\s+posture|security\s+vulnerabilit(?:y|ies))\b
+- id: L1-4
+  category: Business secrets
+  text: Trade secrets and confidential company financial or commercial information
+  examples: Future contractor bids and proposals, contract financials, technical data a company was paid
+    to develop
+  source_pages:
+  - 1
+  detectors:
+  - kind: keywords
+    name: Business confidentiality indicator
+    item_id: L1-4
+    terms:
+    - trade secret
+    - trade secrets
+    - confidential company financial
+    - confidential commercial
+    - contractor bid
+    - contractor bids
+    - contractor proposal
+    - contractor proposals
+    - contract financials
+    - proprietary technical data
+  - kind: regex
+    name: Nonpublic bid or company-data context
+    item_id: L1-4
+    pattern: \b(?:confidential|proprietary|non[- ]public|future)\b.{0,100}\b(?:bids?|proposals?|(?:company|contract)\s+(?:financials?|technical\s+data|pricing))\b
+  - kind: regex
+    name: Company-paid technical data
+    item_id: L1-4
+    pattern: \btechnical\s+data\b.{0,100}\b(?:company|contractor)\b.{0,40}\bpaid\b
+- id: L1-5
+  category: Internal deliberations and legal advice
+  text: Drafts, advice, and discussions that happen before a decision, and communications with lawyers
+  examples: Sources that include draft documents, attorney advice, ongoing safety investigation material
+  source_pages:
+  - 1
+  detectors:
+  - kind: keywords
+    name: Internal deliberation or legal-advice indicator
+    item_id: L1-5
+    terms:
+    - predecisional
+    - pre-decisional
+    - attorney advice
+    - legal advice
+    - attorney-client
+    - attorney client
+    - ongoing safety investigation
+    - communications with lawyers
+  - kind: regex
+    name: Draft document indicator
+    item_id: L1-5
+    pattern: \b(?:drafts?\s+(?:documents?|reports?|memorand(?:a|ums?)|memos?|polic(?:y|ies)|decisions?|recommendations?|proposals?)|(?:document|report|memo|policy)\s+draft)\b
+  - kind: regex
+    name: Before-decision discussion context
+    item_id: L1-5
+    pattern: \b(?:advice|discussions?|deliberations?)\b.{0,100}\bbefore\s+(?:a|the)\s+decision\b
+- id: L1-6
+  category: Personal privacy
+  text: Personal details that would be an unwarranted invasion of privacy
+  examples: Home addresses, personal phone numbers and emails, spouse/kid’s names and personal medical
+    information
+  source_pages:
+  - 1
+  detectors:
+  - kind: regex
+    name: Personal email-address format
+    item_id: L1-6
+    pattern: (?<![\w@])[A-Z0-9.!#$%&\x27*+/=?^_`{|}~-]+@[A-Z0-9-]+(?:\.[A-Z0-9-]+)+(?![\w@])
+  - kind: regex
+    name: Social Security number format
+    item_id: L1-6
+    pattern: (?<!\d)(?!000|666|9\d\d)\d{3}[- ](?!00)\d{2}[- ](?!0000)\d{4}(?!\d)
+  - kind: regex
+    name: Telephone-number format
+    item_id: L1-6
+    pattern: (?<!\w)(?:\+?1[ .-]?)?(?:\(\d{3}\)\s*|\d{3}[ .-])\d{3}[ .-]\d{4}(?!\d)
+  - kind: regex
+    name: International telephone-number format
+    item_id: L1-6
+    pattern: (?<!\w)\+\d{1,3}(?:[ .-]\d{2,5}){2,4}(?!\d)
+  - kind: regex
+    name: Street-address format
+    item_id: L1-6
+    pattern: \b\d{1,6}\s+(?:[A-Z0-9][\w.\x27-]*\s+){1,6}(?:Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Way|Place|Pl|Circle|Cir)\b
+  - kind: regex
+    name: Named family-member context
+    item_id: L1-6
+    pattern: \b(?:my|our)\s+(?:wife|husband|spouse|son|daughter|child|children|kids?)\s+(?:named\s+)?(?-i:[A-Z][A-Za-z\x27-]{1,})\b
+  - kind: regex
+    name: Medical detail near acknowledgments
+    item_id: L1-6
+    pattern: \b(?:medical\s+(?:information|history|condition)|diagnos(?:is|es|ed)|surger(?:y|ies)|treatment|illness|hospitali[sz]ation|cancer)\b
+    guard: acknowledgment
+    context_scope: nearby
+    context_pattern: \b(?:acknowledg(?:e)?ments?|thank(?:s|ful)?|grateful)\b
+  - kind: keywords
+    name: Explicit personal-information label
+    item_id: L1-6
+    terms:
+    - home address
+    - home addresses
+    - personal phone number
+    - personal phone numbers
+    - personal email
+    - personal emails
+    - personal medical information
+- id: L1-7
+  category: Law enforcement records
+  text: Investigation material that could harm a case, a person, or public safety
+  examples: Witness statements, confidential sources, investigation techniques, security and emergency
+    response plans
+  source_pages:
+  - 2
+  detectors:
+  - kind: keywords
+    name: Investigation or protected-source indicator
+    item_id: L1-7
+    terms:
+    - witness statement
+    - witness statements
+    - confidential source
+    - confidential sources
+    - investigation technique
+    - investigation techniques
+    - emergency response plan
+    - emergency response plans
+    - ongoing investigation
+    - law enforcement investigation
+- id: L1-8
+  category: Financial regulation
+  text: Reports about the examination or condition of financial institutions
+  examples: Bank examination reports
+  source_pages:
+  - 2
+  detectors:
+  - kind: keywords
+    name: Financial-institution examination indicator
+    item_id: L1-8
+    terms:
+    - bank examination report
+    - bank examination reports
+    - financial institution examination
+    - examination of financial institutions
+    - condition of financial institutions
+    - financial examination report
+- id: L1-9
+  category: Wells
+  text: Geological and geophysical data and maps about wells
+  examples: Well maps and survey data
+  source_pages:
+  - 2
+  detectors:
+  - kind: keywords
+    name: Well map or survey indicator
+    item_id: L1-9
+    terms:
+    - well map
+    - well maps
+    - well survey data
+    - maps about wells
+  - kind: regex
+    name: Geological well-data context
+    item_id: L1-9
+    pattern: \b(?:geological|geophysical)\b.{0,120}\bwells?\b|\bwells?\b.{0,120}\b(?:geological|geophysical|survey\s+data|maps?)\b
+list2:
+- id: L2-01
+  text: Animal testing
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Animal-testing topic
+    item_id: L2-01
+    terms:
+    - animal testing
+    - animal tests
+    - animal experimentation
+    - animal trials
+  - kind: regex
+    name: Testing involving animals
+    item_id: L2-01
+    pattern: \btest(?:s|ed|ing)?\s+(?:on|using|with)\s+animals\b
+- id: L2-02
+  text: Directed energy
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: Directed-energy topic
+    item_id: L2-02
+    pattern: \bdirected[ -]+energy\b
+- id: L2-03
+  text: New weapons or weapon systems, significant modifications or improvements to existing weapons or
+    weapon systems, equipment, or techniques
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: New or changed weapon-system topic
+    item_id: L2-03
+    terms:
+    - new weapon
+    - new weapons
+    - new weapon system
+    - new weapon systems
+    - significant modifications
+    - improvements to existing weapons
+  - kind: regex
+    name: Weapon or equipment modification
+    item_id: L2-03
+    pattern: \b(?:modif(?:ication|ications|ied)|improv(?:ement|ements|ed))\b.{0,100}\b(?:weapons?|weapon\s+systems?|equipment|techniques?)\b
+- id: L2-04
+  text: Unmanned aerial system/unmanned aerial vehicle/remotely piloted aircraft (drones and remotely
+    piloted aircraft)
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Unmanned-aircraft topic
+    item_id: L2-04
+    terms:
+    - unmanned aerial
+    - remotely piloted
+    - drone
+    - drones
+    - UAS
+    - UAV
+    - RPA
+- id: L2-05
+  text: Cyber warfare, cyber vulnerabilities, cyber research
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Cyber topic
+    item_id: L2-05
+    terms:
+    - cyber
+    - cybersecurity
+    - cyber warfare
+    - cyber vulnerabilities
+    - cyber research
+- id: L2-06
+  text: F-22/F-35
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: F-22 or F-35 designator
+    item_id: L2-06
+    pattern: \bF\s*[- ]?\s*(?:22|35)[A-Z]{0,2}\b
+- id: L2-07
+  text: Unexplained physiologic events/on-board oxygen generating system/hypobaria / hypoxia (unexplained
+    physiological events, white brain matter, etc.)
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Physiologic-event or oxygen-system topic
+    item_id: L2-07
+    terms:
+    - unexplained physiologic
+    - unexplained physiological
+    - oxygen generating system
+    - OBOGS
+    - hypobaria
+    - hypoxia
+    - white brain matter
+    - white matter
+- id: L2-08
+  text: High-energy lasers and particle beam technology; and arms control treaty implementation
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: High-energy laser or particle-beam topic
+    item_id: L2-08
+    pattern: \b(?:high[ -]+energy\s+lasers?|particle[ -]+beam)\b
+  - kind: keywords
+    name: Arms-control implementation topic
+    item_id: L2-08
+    terms:
+    - arms control
+    - treaty implementation
+- id: L2-09
+  text: Military activities or applications in space, nuclear weapons, including weapon-effects research
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Military-space or nuclear-weapon topic
+    item_id: L2-09
+    terms:
+    - military space
+    - space operations
+    - nuclear weapon
+    - nuclear weapons
+    - weapon-effects research
+    - weapon effects research
+  - kind: regex
+    name: Military activity in space
+    item_id: L2-09
+    pattern: \bmilitary\b.{0,100}\bspace\b|\bspace\b.{0,100}\bmilitary\b
+- id: L2-10
+  text: Military operations, significant exercises, and operations security (details of future war plans)
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Military operations or OPSEC topic
+    item_id: L2-10
+    terms:
+    - military operations
+    - significant exercises
+    - operations security
+    - operational security
+    - OPSEC
+    - future war plans
+- id: L2-11
+  text: Chemical and biological warfare issues; biological and toxin research
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Chemical or biological warfare topic
+    item_id: L2-11
+    terms:
+    - chemical warfare
+    - biological warfare
+    - biological research
+    - toxin research
+    - chemical and biological warfare
+    - chemical weapon
+    - biological weapon
+    - biological toxin
+- id: L2-12
+  text: Information related to current operations, readiness or posture for future operations
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Operations readiness or posture topic
+    item_id: L2-12
+    terms:
+    - current operations
+    - readiness
+    - operational readiness
+    - combat readiness
+    - posture for future operations
+- id: L2-13
+  text: Vulnerabilities that could impact the readiness of units or operations involving other countries
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: Unit or operation vulnerability topic
+    item_id: L2-13
+    pattern: \bvulnerabilit(?:y|ies)\b.{0,140}\b(?:units?|readiness|operations?)\b|\b(?:units?|readiness|operations?)\b.{0,140}\bvulnerabilit(?:y|ies)\b
+- id: L2-14
+  text: Details of number, location, and capabilities of operational assets
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Operational-asset topic
+    item_id: L2-14
+    terms:
+    - operational asset
+    - operational assets
+  - kind: regex
+    name: Asset number location or capability topic
+    item_id: L2-14
+    pattern: \b(?:number|location|capabilit(?:y|ies))\b.{0,120}\b(?:aircraft|planes?|equipment|assets?|ships?|personnel)\b
+  - kind: regex
+    name: Count associated with assets or personnel
+    item_id: L2-14
+    pattern: \b\d{1,5}\s+(?:(?:operational|assigned|available|deployed)\s+)?(?:aircraft|planes?|ships?|vehicles?|personnel|troops?|assets?)\b
+- id: L2-15
+  text: Detailed descriptions of a sequence of events in an operational or training scenario, or exercise
+    to include major exercises such as readiness assessment/evaluations or Flag/major training exercises
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Operational or training-scenario topic
+    item_id: L2-15
+    terms:
+    - operational scenario
+    - training scenario
+    - readiness assessment
+    - readiness evaluation
+    - major training exercise
+    - major exercises
+    - Flag/major training exercises
+  - kind: regex
+    name: Major exercise detail topic
+    item_id: L2-15
+    pattern: \b(?:major|readiness|flag|military)\b.{0,45}\b(?:exercises?|training|evaluations?|assessments?)\b
+- id: L2-16
+  text: Detailed descriptions that reveal capability of unique command and control node (Space Operations
+    Centers, Air Operations Centers, etc.)
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: Command-and-control node topic
+    item_id: L2-16
+    pattern: \b(?:command\s+and\s+control|Space\s+Operations\s+Centers?|Air\s+Operations\s+Centers?)\b
+- id: L2-17
+  text: Information that reveals tactics, techniques and procedures
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: Tactics techniques and procedures topic
+    item_id: L2-17
+    pattern: \btactics\s*,?\s*techniques\s*,?\s*(?:and|&)\s*procedures\b|\bTTPs?\b
+  - kind: keywords
+    name: Tactics topic
+    item_id: L2-17
+    terms:
+    - tactic
+    - tactics
+- id: L2-18
+  text: Deployment schedules or locations
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: Deployment topic
+    item_id: L2-18
+    pattern: \bdeploy(?:ment|ments|ed|ing|s)?\b
+- id: L2-19
+  text: Originates, or is proposed for release, in the Washington D.C. metropolitan area
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Washington-area origin or release candidate
+    item_id: L2-19
+    terms:
+    - Washington D.C.
+    - Washington, D.C.
+    - Washington DC
+- id: L2-20
+  text: Is, or has the potential to become, an item of national or international interest
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: National or international interest topic
+    item_id: L2-20
+    pattern: \b(?:national|international)\s+(?:interest|attention|controversy|concern)\b
+- id: L2-21
+  text: References President and Secretary of Defense authority
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Defense leadership authority candidate
+    item_id: L2-21
+    terms:
+    - Secretary of Defense
+    - SecDef
+    - presidential authority
+    - President's authority
+  - kind: regex
+    name: Presidential authority context
+    item_id: L2-21
+    pattern: \bPresident\b.{0,80}\b(?:authority|orders?|directives?|powers?)\b|\b(?:authority|orders?|directives?|powers?)\b.{0,80}\bPresident\b
+- id: L2-22
+  text: Affects national security policy or foreign relations
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: National-security policy or foreign-relations topic
+    item_id: L2-22
+    terms:
+    - national security policy
+    - foreign relations
+    - foreign policy
+    - diplomatic relations
+- id: L2-23
+  text: Concerns subjects of potential controversy among DoD components or with other federal agencies
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: DoD or agency controversy topic
+    item_id: L2-23
+    pattern: \b(?:controvers(?:y|ial|ies)|disputes?|disagree(?:ment|ments)?)\b.{0,140}\b(?:DoD|Department\s+of\s+Defense|(?:federal\s+)?agenc(?:y|ies))\b|\b(?:DoD|Department\s+of\s+Defense|(?:federal\s+)?agenc(?:y|ies))\b.{0,140}\b(?:controvers(?:y|ial|ies)|disputes?|disagree(?:ment|ments)?)\b
+- id: L2-24
+  text: Is information that is presented by a DoD employee who, by virtue of rank, position, or expertise,
+    would be considered an official DoD spokesperson (e.g. if the author is an O-7 or higher)
+  source_pages:
+  - 3
+  detectors:
+  - kind: regex
+    name: Senior-officer rank in author byline
+    item_id: L2-24
+    pattern: \b(?:Brigadier\s+General|Brig[.]?\s+Gen[.]?|Major\s+General|Maj[.]?\s+Gen[.]?|Lieutenant\s+General|Lt[.]?\s+Gen[.]?|Rear\s+Admiral|Vice\s+Admiral|Admiral|General|Gen[.]?|O[-
+      ]?(?:[7-9]|10))\b
+    guard: byline
+  - kind: keywords
+    name: Official DoD spokesperson topic
+    item_id: L2-24
+    terms:
+    - official DoD spokesperson
+- id: L2-25
+  text: Contains technical data, including data developed under contract or independently developed and
+    controlled by the International Traffic in Arms Regulations
+  source_pages:
+  - 3
+  detectors:
+  - kind: keywords
+    name: Controlled technical-data topic
+    item_id: L2-25
+    terms:
+    - ITAR
+    - International Traffic in Arms Regulations
+    - export-controlled technical data
+    - export controlled technical data
+  - kind: regex
+    name: Technical data under contract or control
+    item_id: L2-25
+    pattern: \btechnical\s+data\b.{0,120}\b(?:contract|controlled|export|independent(?:ly)?)\b|\b(?:contract|controlled|export|independent(?:ly)?)\b.{0,120}\btechnical\s+data\b
+- id: L2-26
+  text: Any other contemporary topic that is designated by the Defense Office of Prepublication and Security
+    Review (DOPSR) (such as personnel readiness)
+  source_pages:
+  - 4
+  detectors:
+  - kind: keywords
+    name: DOPSR-designated topic candidate
+    item_id: L2-26
+    terms:
+    - DOPSR
+    - personnel readiness
+    - Defense Office of Prepublication and Security Review
+- id: L2-27
+  text: Work in conjunction with a sister service or other DoD component that has had no coordination
+    documented when we receive materials
+  source_pages:
+  - 4
+  detectors:
+  - kind: keywords
+    name: Undocumented sister-service coordination
+    item_id: L2-27
+    terms:
+    - no coordination documented
+    - coordination not documented
+    - without documented coordination
+    - undocumented coordination
+    - coordination documentation is missing
+    context_scope: nearby
+    context_pattern: \b(?:sister\s+service|DoD\s+component|other\s+DoD|Army|Navy|Marine\s+Corps|Space\s+Force)\b
+- id: L2-28
+  text: Work with another Department of the Air Force installation or wing that has had no coordination
+    documented when we receive materials
+  source_pages:
+  - 4
+  detectors:
+  - kind: keywords
+    name: Undocumented Air Force coordination
+    item_id: L2-28
+    terms:
+    - no coordination documented
+    - coordination not documented
+    - without documented coordination
+    - undocumented coordination
+    - coordination documentation is missing
+    context_scope: nearby
+    context_pattern: \b(?:Department\s+of\s+the\s+Air\s+Force|DAF|Air\s+Force|installation|wing)\b
+- id: L2-29
+  text: Information on unit’s critical information list (numbers of personnel, planes, equipment, etc.)
+  source_pages:
+  - 4
+  detectors:
+  - kind: keywords
+    name: Unit critical-information-list topic
+    item_id: L2-29
+    terms:
+    - critical information list
+  - kind: regex
+    name: Personnel planes or equipment quantities
+    item_id: L2-29
+    pattern: \b(?:numbers?|counts?)\s+of\s+(?:personnel|planes?|equipment)\b
+- id: L2-30
+  text: Sensitive space information
+  source_pages:
+  - 4
+  detectors:
+  - kind: regex
+    name: Sensitive space-information topic
+    item_id: L2-30
+    pattern: \bsensitive\b.{0,80}\bspace\b|\bspace\b.{0,80}\b(?:sensitive|restricted)\b
+- id: L2-31
+  text: Materials reporting the release of, or Department of the Air Force response to, the release of,
+    compounds containing Perfuoroalkyl substances (PFAS), including Perfluorooctanoic acid (PFOA) or Perfoluorooctane
+    sulfonate (PFOS).
+  source_pages:
+  - 4
+  detectors:
+  - kind: keywords
+    name: PFAS release or response candidate
+    item_id: L2-31
+    terms:
+    - PFAS
+    - PFOA
+    - PFOS
+    - Perfuoroalkyl
+    - Perfoluorooctane sulfonate
+  - kind: regex
+    name: Perfluoro compound name
+    item_id: L2-31
+    pattern: \bper(?:f|fl)uoro(?:alkyl|octanoic|octane)\b

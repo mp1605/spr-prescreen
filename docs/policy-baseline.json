@@ -1,0 +1,350 @@
+{
+  "policy_version": "LOE2-guide-v1",
+  "source_document": "docs/official-lists.pdf",
+  "source_sha256": "ef7162e06e90663b9ad584f98961c2dc541b29cf6590b13e4b1ff5fd3536a681",
+  "list_execution_order": [
+    "list1",
+    "list2"
+  ],
+  "short_circuit": false,
+  "color_rules": {
+    "list1_any_hit": "red",
+    "list2_clear_match": "red",
+    "list2_possible_match": "yellow",
+    "judgment_item_default": "yellow",
+    "unreadable_or_uncertain": "yellow",
+    "aggregation": "worst_color_wins"
+  },
+  "list1": [
+    {
+      "id": "L1-1",
+      "category": "Classified information",
+      "text": "Anything classified for national defense or foreign policy reasons",
+      "examples": "Classification markings; details that together could reveal something classified Example classification markings: (C) (S) (TS) (CUI) It doesn’t matter if there is more to the marking, it would still mark as a red flag. Ex: (S//NF/PROPIN) (C//FRD) (//GBR S) (TS//SI/TK) (S//RD) (S//REL) (TS//REL TO USA, AUS, CAN, GBR) (S//RD-N)",
+      "source_pages": [
+        1
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L1-3",
+      "category": "Protected by another law",
+      "text": "Information a different law says must be withheld",
+      "examples": "Names, ranks, and duty details of personnel currently in overseas, sensitive, or routinely deployed units; sensitive information from foreign governments; critical infrastructure security details (specifics about a particular locations defensive posture, etc.)",
+      "source_pages": [
+        1
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L1-4",
+      "category": "Business secrets",
+      "text": "Trade secrets and confidential company financial or commercial information",
+      "examples": "Future contractor bids and proposals, contract financials, technical data a company was paid to develop",
+      "source_pages": [
+        1
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L1-5",
+      "category": "Internal deliberations and legal advice",
+      "text": "Drafts, advice, and discussions that happen before a decision, and communications with lawyers",
+      "examples": "Sources that include draft documents, attorney advice, ongoing safety investigation material",
+      "source_pages": [
+        1
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L1-6",
+      "category": "Personal privacy",
+      "text": "Personal details that would be an unwarranted invasion of privacy",
+      "examples": "Home addresses, personal phone numbers and emails, spouse/kid’s names and personal medical information",
+      "source_pages": [
+        1
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L1-7",
+      "category": "Law enforcement records",
+      "text": "Investigation material that could harm a case, a person, or public safety",
+      "examples": "Witness statements, confidential sources, investigation techniques, security and emergency response plans",
+      "source_pages": [
+        2
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L1-8",
+      "category": "Financial regulation",
+      "text": "Reports about the examination or condition of financial institutions",
+      "examples": "Bank examination reports",
+      "source_pages": [
+        2
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L1-9",
+      "category": "Wells",
+      "text": "Geological and geophysical data and maps about wells",
+      "examples": "Well maps and survey data",
+      "source_pages": [
+        2
+      ],
+      "detectors": []
+    }
+  ],
+  "list2": [
+    {
+      "id": "L2-01",
+      "text": "Animal testing",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-02",
+      "text": "Directed energy",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-03",
+      "text": "New weapons or weapon systems, significant modifications or improvements to existing weapons or weapon systems, equipment, or techniques",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-04",
+      "text": "Unmanned aerial system/unmanned aerial vehicle/remotely piloted aircraft (drones and remotely piloted aircraft)",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-05",
+      "text": "Cyber warfare, cyber vulnerabilities, cyber research",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-06",
+      "text": "F-22/F-35",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-07",
+      "text": "Unexplained physiologic events/on-board oxygen generating system/hypobaria / hypoxia (unexplained physiological events, white brain matter, etc.)",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-08",
+      "text": "High-energy lasers and particle beam technology; and arms control treaty implementation",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-09",
+      "text": "Military activities or applications in space, nuclear weapons, including weapon-effects research",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-10",
+      "text": "Military operations, significant exercises, and operations security (details of future war plans)",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-11",
+      "text": "Chemical and biological warfare issues; biological and toxin research",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-12",
+      "text": "Information related to current operations, readiness or posture for future operations",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-13",
+      "text": "Vulnerabilities that could impact the readiness of units or operations involving other countries",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-14",
+      "text": "Details of number, location, and capabilities of operational assets",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-15",
+      "text": "Detailed descriptions of a sequence of events in an operational or training scenario, or exercise to include major exercises such as readiness assessment/evaluations or Flag/major training exercises",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-16",
+      "text": "Detailed descriptions that reveal capability of unique command and control node (Space Operations Centers, Air Operations Centers, etc.)",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-17",
+      "text": "Information that reveals tactics, techniques and procedures",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-18",
+      "text": "Deployment schedules or locations",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-19",
+      "text": "Originates, or is proposed for release, in the Washington D.C. metropolitan area",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-20",
+      "text": "Is, or has the potential to become, an item of national or international interest",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-21",
+      "text": "References President and Secretary of Defense authority",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-22",
+      "text": "Affects national security policy or foreign relations",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-23",
+      "text": "Concerns subjects of potential controversy among DoD components or with other federal agencies",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-24",
+      "text": "Is information that is presented by a DoD employee who, by virtue of rank, position, or expertise, would be considered an official DoD spokesperson (e.g. if the author is an O-7 or higher)",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-25",
+      "text": "Contains technical data, including data developed under contract or independently developed and controlled by the International Traffic in Arms Regulations",
+      "source_pages": [
+        3
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-26",
+      "text": "Any other contemporary topic that is designated by the Defense Office of Prepublication and Security Review (DOPSR) (such as personnel readiness)",
+      "source_pages": [
+        4
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-27",
+      "text": "Work in conjunction with a sister service or other DoD component that has had no coordination documented when we receive materials",
+      "source_pages": [
+        4
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-28",
+      "text": "Work with another Department of the Air Force installation or wing that has had no coordination documented when we receive materials",
+      "source_pages": [
+        4
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-29",
+      "text": "Information on unit’s critical information list (numbers of personnel, planes, equipment, etc.)",
+      "source_pages": [
+        4
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-30",
+      "text": "Sensitive space information",
+      "source_pages": [
+        4
+      ],
+      "detectors": []
+    },
+    {
+      "id": "L2-31",
+      "text": "Materials reporting the release of, or Department of the Air Force response to, the release of, compounds containing Perfuoroalkyl substances (PFAS), including Perfluorooctanoic acid (PFOA) or Perfoluorooctane sulfonate (PFOS).",
+      "source_pages": [
+        4
+      ],
+      "detectors": []
+    }
+  ]
+}
