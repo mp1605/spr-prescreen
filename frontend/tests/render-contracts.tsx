@@ -1,8 +1,6 @@
 // Official phrases and numeric render contracts only. No paper corpus or sponsor data.
 import assert from "node:assert/strict";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ScorecardReport } from "../src/components/ScorecardReport";
-import { rate, type EvaluationReport } from "../src/api/evaluation";
 import { BatchSelection } from "../src/components/BatchSelection";
 import {
   droppedFiles,
@@ -10,72 +8,6 @@ import {
   type SelectedUpload,
 } from "../src/logic/uploads";
 import type { AIStatus } from "../src/api/ai";
-
-const report: EvaluationReport = {
-  kind: "format_contract",
-  paper_count: 1,
-  trigger_count: 1,
-  matched_triggers: 0,
-  trigger_recall: 0,
-  list1_recall: null,
-  list2_recall: 0,
-  item_accuracy: null,
-  flag_color_accuracy: null,
-  paper_color_accuracy: 0,
-  confusion: {
-    green: { green: 0, yellow: 0, red: 0 },
-    yellow: { green: 1, yellow: 0, red: 0 },
-    red: { green: 0, yellow: 0, red: 0 },
-  },
-  false_alarms: 0,
-  greens_wrongly_flagged: 0,
-  decoy_count: 0,
-  decoys_flagged: 0,
-  false_alarms_on_reference_papers: 0,
-  incomplete_papers: 0,
-  seconds_per_paper_ai_off: 0,
-  seconds_per_paper_ai_on: null,
-  rules_versions: ["numeric-contract"],
-  matching_policy: "In-memory arithmetic and display only",
-  cost_assumption: "Contract",
-  weighted_cost: 3,
-  cases: [
-    {
-      case_id: "display-contract",
-      expected_color: "yellow",
-      actual_color: "green",
-      trigger_count: 1,
-      matched_count: 0,
-      missed: [
-        {
-          tag: "T1",
-          quote: "Animal testing <script>literal text</script>",
-          items: ["L2-01"],
-          color: "yellow",
-          reason: "Display escaping contract",
-        },
-      ],
-      false_alarms: [],
-      decoy_hits: [],
-    },
-  ],
-};
-const html = renderToStaticMarkup(<ScorecardReport report={report} />);
-assert.equal(rate(0), "0.0%");
-assert.equal(rate(null), "Not defined");
-assert.match(html, /NOT SCANNER|do not measure scanner accuracy/i);
-assert.match(html, /0\.00/); // A measured zero-second value must not become missing.
-assert.match(html, /Not defined/);
-assert.match(html, /Missed T1/);
-assert.match(html, /1 expected triggers were not matched/);
-assert.match(html, /&lt;script&gt;literal text&lt;\/script&gt;/);
-assert.doesNotMatch(html, /<script>/);
-assert.equal((html.match(/scope="row"/g) || []).length, 3);
-assert.match(html, /Reference-paper false alarms/);
-assert.match(html, /Not measured · no reference papers/);
-console.log(
-  "12 scorecard rendering assertions passed; format/numeric objects only, not scanner accuracy",
-);
 
 const selected: SelectedUpload = {
   id: 1,

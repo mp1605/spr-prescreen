@@ -5,12 +5,15 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Callable
 from datetime import UTC
 from pathlib import Path
 from typing import Literal
 from zoneinfo import ZoneInfo
 
 from backend.cli_io import write_report
+from backend.core.annotate import annotate, renderer_digest
+from backend.core.annotation_notes import AnnotationError, overridden
 from backend.core.batch_models import TERMINAL, BatchEntry, BatchRecord, ReviewState
 from backend.core.export_io import write_binary
 from backend.core.run_store import RunStore
@@ -111,6 +114,30 @@ class BatchFolders:
                         )
         return moved
 
+    def refresh_existing(self, states_for: Callable[[str], dict[str, ReviewState]]) -> int:
+        """Upgrade existing copies from stored findings and reviews; never rescan a paper."""
+        updated = 0
+        with self.store.lock:
+            for batch in self.store.list():
+                if any(entry.phase not in TERMINAL for entry in batch.entries):
+                    continue
+                try:
+                    if not self.path(batch.run_id).is_dir():
+                        continue
+                    states = states_for(batch.run_id)
+                except (OSError, ValueError):
+                    for entry in batch.entries:
+                        self.errors[(batch.run_id, entry.entry_id)] = (
+                            "Batch document storage needs repair."
+                        )
+                    continue
+                for entry in batch.entries:
+                    if entry.phase != "rejected":
+                        self.attempt(batch, entry, states[entry.entry_id])
+                        if (batch.run_id, entry.entry_id) not in self.errors:
+                            updated += 1
+        return updated
+
     @staticmethod
     def filename(batch: BatchRecord, entry: BatchEntry) -> str:
         number = next(
@@ -194,41 +221,136 @@ class BatchFolders:
         )
         if not isinstance(index, dict) or not isinstance(index.get("documents"), dict):
             raise ValueError("Batch manifest is damaged")
+        previous_record = index["documents"].get(entry.entry_id, {})
+        if not isinstance(previous_record, dict):
+            raise ValueError("Document manifest is damaged")
+        allowed_hashes = {digest}
+        for key in ("document_sha256", "pending_document_sha256"):
+            value = previous_record.get(key)
+            if isinstance(value, str) and re.fullmatch(r"[a-f0-9]{64}", value):
+                allowed_hashes.add(value)
         copies = [self.path(batch.run_id, f) / target.name for f in FOLDERS]
+        existing: dict[Path, bytes] = {}
         for copy in copies:
             if copy.is_symlink():
                 raise ValueError("Organized documents cannot be symbolic links")
             if copy.exists() and not copy.is_file():
                 raise ValueError("A document destination is occupied by a directory")
-            if copy.is_file() and hashlib.sha256(copy.read_bytes()).hexdigest() != digest:
-                raise ValueError(
-                    "An organized copy was modified. Contents were preserved; "
-                    "restore it before updating folders"
-                )
-        if not target.exists():
-            previous = next((copy for copy in copies if copy.is_file()), None)
-            if previous:
-                previous.replace(target)
+            if copy.is_file():
+                existing[copy] = copy.read_bytes()
+                if hashlib.sha256(existing[copy]).hexdigest() not in allowed_hashes:
+                    raise ValueError(
+                        "An organized copy was modified. Contents were preserved; "
+                        "restore it before updating folders"
+                    )
+        output = data
+        copy_type = "original_no_flags" if entry.result else "original_unprocessed"
+        warnings: tuple[str, ...] = ()
+        render_error = None
+        if entry.result and entry.result.findings:
+            copy_type = "highlighted_review"
+            cached = next(
+                (
+                    content
+                    for content in existing.values()
+                    if hashlib.sha256(content).hexdigest() == previous_record.get("document_sha256")
+                ),
+                None,
+            )
+            if (
+                cached is not None
+                and previous_record.get("renderer_digest") == renderer_digest()
+                and previous_record.get("review_revision") == state.revision
+                and previous_record.get("copy_type") == copy_type
+            ):
+                output = cached
+                warnings = tuple(previous_record.get("warnings", []))
             else:
-                write_binary(target, data)
+                try:
+                    artifact = annotate(
+                        data,
+                        self.store.parsed(batch.run_id, entry.entry_id),
+                        entry.result,
+                        state,
+                        notes=True,
+                    )
+                    output, warnings = artifact.data, artifact.warnings
+                except (AnnotationError, OSError, ValueError):
+                    if (
+                        cached is not None
+                        and previous_record.get("copy_type") == "highlighted_review"
+                    ):
+                        output = cached
+                        copy_type = "review_copy_stale"
+                        render_error = (
+                            "Review saved, but the highlighted copy could not be updated. "
+                            "Previous copy retained; use Update batch folders to retry."
+                        )
+                    else:
+                        copy_type = "original_unannotated"
+                        render_error = (
+                            "Highlighted copy could not be prepared. Original retained for manual "
+                            "review; use Update batch folders to retry."
+                        )
+                    warnings = (render_error,)
+        elif entry.result and entry.result.incomplete_reasons:
+            copy_type = "original_unannotated"
+            render_error = (
+                "Source is incomplete and has no highlightable findings. "
+                "Original retained for manual inspection."
+            )
+            warnings = (render_error,)
+        output_digest = hashlib.sha256(output).hexdigest()
+        # Persist the next checksum first, so an interrupted replacement can be repaired
+        # without treating a known generated file as a user's edited document.
+        index["documents"][entry.entry_id] = {
+            **previous_record,
+            "source_sha256": digest,
+            "pending_document_sha256": output_digest,
+        }
+        write_report(manifest, index)
+        if existing.get(target) != output:
+            write_binary(target, output)
         for copy in copies:
             if copy != target and copy.is_file():
                 copy.unlink()  # Only identical managed copies; the immutable original remains.
+        active_count = (
+            sum(not overridden(flag, state) for flag in entry.result.findings)
+            if entry.result and copy_type == "highlighted_review"
+            else 0
+        )
+        override_count = (
+            sum(overridden(flag, state) for flag in entry.result.findings) if entry.result else 0
+        )
+        if copy_type == "review_copy_stale":
+            active_count = previous_record.get("active_highlights", 0)
+            override_count = previous_record.get("overridden_findings", 0)
         index["documents"][entry.entry_id] = {
             "original_file_name": entry.file_name,
             "file_name": target.name,
             "folder": target.parent.name,
             "source_sha256": digest,
+            "document_sha256": output_digest,
+            "renderer_digest": renderer_digest(),
             "scanner_color": entry.result.color if entry.result else None,
             "reviewer_approved": state.approved,
             "approval": state.approval_event.model_dump(mode="json")
             if state.approval_event
             else None,
-            "review_revision": state.revision,
-            "copy_type": "original_format_original_bytes",
+            "review_revision": previous_record.get("review_revision", 0)
+            if copy_type == "review_copy_stale"
+            else state.revision,
+            "requested_review_revision": state.revision,
+            "copy_type": copy_type,
+            "active_highlights": active_count,
+            "overridden_findings": override_count,
+            "warnings": list(warnings),
         }
         write_report(manifest, index)
-        self.errors.pop((batch.run_id, entry.entry_id), None)
+        if render_error:
+            self.errors[(batch.run_id, entry.entry_id)] = render_error
+        else:
+            self.errors.pop((batch.run_id, entry.entry_id), None)
 
     def attempt(self, batch: BatchRecord, entry: BatchEntry, state: ReviewState) -> None:
         try:

@@ -14,9 +14,9 @@ export function BatchSummary({
   const entries = batch.entries;
   const count = (color: string) =>
     entries.filter((entry) => entry.result?.color === color).length;
-  const incomplete = entries.filter(
+  const notReviewed = entries.filter(
     (entry) =>
-      entry.result?.incomplete_reasons.length || entry.phase === "failed",
+      entry.phase === "done" && !batch.reviews[entry.entry_id]?.complete,
   ).length;
   const reviewed = Object.values(batch.reviews).filter(
     (state) => state.complete,
@@ -52,7 +52,7 @@ export function BatchSummary({
           ["Green", count("green"), "No flags found"],
           ["Yellow", count("yellow"), "Potential / incomplete"],
           ["Red", count("red"), "Flag identified"],
-          ["Incomplete", incomplete, "Source needs inspection"],
+          ["Not-Reviewed", notReviewed, "Awaiting human review"],
           ["Reviewed", reviewed, "Human review recorded"],
         ].map(([label, value, detail]) => (
           <article key={label} className={String(label).toLowerCase()}>

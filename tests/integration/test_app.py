@@ -15,7 +15,7 @@ def test_health_reports_actual_policy(client):
     assert data["release_decision"] == "NOT_MADE_BY_TOOL"
 
 
-@pytest.mark.parametrize("path", ["/", "/rules", "/system", "/offline", "/items", "/scorecard"])
+@pytest.mark.parametrize("path", ["/", "/rules", "/system", "/offline", "/items"])
 def test_spa_routes_and_security_headers(client, path):
     response = client.get(path)
     assert response.status_code == 200
@@ -31,7 +31,9 @@ def test_policy_is_read_only_and_source_is_available(client):
     assert source.status_code == 200 and source.content.startswith(b"%PDF")
 
 
-@pytest.mark.parametrize("path", ["/api/unknown", "/unknown", "/data/keys", "/MASTER_PROMPT.md"])
+@pytest.mark.parametrize(
+    "path", ["/api/unknown", "/unknown", "/data/keys", "/MASTER_PROMPT.md", "/scorecard"]
+)
 def test_missing_features_and_private_files_are_not_spa_successes(client, path):
     assert client.get(path).status_code == 404
 

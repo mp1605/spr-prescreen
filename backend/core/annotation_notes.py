@@ -11,6 +11,11 @@ class AnnotationError(ValueError):
     """A source cannot be annotated faithfully; callers should expose the reason."""
 
 
+def overridden(flag: Finding, review: ReviewState) -> bool:
+    decision = review.decisions.get(flag.finding_id)
+    return decision is not None and decision.action == "override"
+
+
 def summary_note(paper: PaperResult, review: ReviewState) -> str:
     return "\n".join(
         [
@@ -20,7 +25,8 @@ def summary_note(paper: PaperResult, review: ReviewState) -> str:
             f"Rules: {paper.rules_version} | AI: {paper.ai_state}",
             f"Raw screening: {paper.color.upper()} | Flags: {paper.flag_count.total}",
             f"Review snapshot: revision {review.revision} | Source inspected: {review.inspected}",
-            "Red/yellow highlights retain scanner priority, including overridden flags.",
+            "Pending and accepted findings retain red/yellow highlights. "
+            "Overridden highlights are removed; decisions remain in notes and audit history.",
             "Release decision: NOT_MADE_BY_TOOL",
             *(
                 ["Incomplete: " + "; ".join(paper.incomplete_reasons)]
@@ -60,6 +66,8 @@ def finding_note(flag: Finding, paper: PaperResult, review: ReviewState) -> str:
         )
         if decision.reason:
             lines.append("Reviewer reason: " + decision.reason)
+        if decision.action == "override":
+            lines.append("Highlight removed by reviewer override; raw finding retained in audit.")
     else:
         lines.append("Reviewer decision: pending")
     lines.extend([f"Review snapshot: revision {review.revision}", DISCLAIMER])

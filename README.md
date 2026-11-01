@@ -1,4 +1,12 @@
-# SPR Pre-Screen · M13 development improvement
+# SPR Pre-Screen
+
+Current workflow: batch PDF/DOCX upload with Python-only, selective local AI, or full local AI; evidence review; accept/override/undo; explicit green-paper approval; and highlighted review copies synchronized into readable date/time batch folders. The Evaluation scorecard page has been removed from the UI.
+
+**Demo instructions:** [Step-by-step workflow](docs/DEMO_WORKFLOW.md). On the prepared Mac, run `./run.sh --port 8510` and open `http://127.0.0.1:8510`. Local runtimes, models, scan files, and credentials are excluded from GitHub.
+
+> The milestone notes below are historical records, including old UI routes, defaults, and measured results. Use the demo workflow above for the current interface.
+
+## M13 development improvement (historical)
 
 The active backend now uses `LOE2-guide-v5-admin` and semantic bands 0.84/0.86. On the
 60 development papers, recall improved from 42/74 to 68/74 (91.9%), List 1 recall reached

@@ -43,7 +43,9 @@ def child_text(child: Xml) -> str:
     return ""
 
 
-def highlighted_run(run: Xml, text_start: int, flags: list[Finding]) -> list[RunPiece]:
+def highlighted_run(
+    run: Xml, text_start: int, flags: list[Finding], suppressed: frozenset[str] = frozenset()
+) -> list[RunPiece]:
     text = run_text(run)
     end = text_start + len(text)
     relevant = [
@@ -78,6 +80,7 @@ def highlighted_run(run: Xml, text_start: int, flags: list[Finding]) -> list[Run
             for f in relevant
             if left + text_start < f.location.char_end
             and f.location.char_start < right + text_start
+            and f.finding_id not in suppressed
         ]
         if active:
             props = clone.get_or_add_rPr()
@@ -115,7 +118,9 @@ def highlighted_run(run: Xml, text_start: int, flags: list[Finding]) -> list[Run
     return pieces
 
 
-def annotate_paragraph(paragraph: Xml, text: str, flags: list[Finding]) -> list[RunPiece]:
+def annotate_paragraph(
+    paragraph: Xml, text: str, flags: list[Finding], *, suppressed: frozenset[str] = frozenset()
+) -> list[RunPiece]:
     runs = source_runs(paragraph)
     if "".join(run_text(r) for r in runs) != text:
         raise AnnotationError("Word paragraph no longer matches its source evidence.")
@@ -124,7 +129,7 @@ def annotate_paragraph(paragraph: Xml, text: str, flags: list[Finding]) -> list[
     for run in runs:
         length = len(run_text(run))
         if length:
-            pieces.extend(highlighted_run(run, offset, flags))
+            pieces.extend(highlighted_run(run, offset, flags, suppressed))
         offset += length
     return pieces
 

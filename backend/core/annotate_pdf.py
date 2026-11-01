@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pymupdf  # type: ignore[import-untyped]
 
-from backend.core.annotation_notes import AnnotationError, finding_note, summary_note
+from backend.core.annotation_notes import AnnotationError, finding_note, overridden, summary_note
 from backend.core.batch_models import ReviewState
 from backend.core.models import PaperResult
 
@@ -26,6 +26,9 @@ def annotate_pdf(
                 raise AnnotationError("PDF annotation geometry exceeds the export resource limit.")
             # Lowest priority first: red remains visible on cross-list overlaps.
             for flag in sorted(paper.findings, key=lambda f: f.color == "red"):
+                dismissed = overridden(flag, review)
+                if dismissed and not notes:
+                    continue
                 loc = flag.location
                 if not loc.page or loc.page > document.page_count or not loc.bbox:
                     raise AnnotationError(
@@ -42,9 +45,13 @@ def annotate_pdf(
                             "PDF evidence falls outside its page. Export JSON instead."
                         )
                     quads.append(pymupdf.Quad(rect.tl, rect.tr, rect.bl, rect.br))
-                annotation = page.add_highlight_annot(quads)
-                annotation.set_colors(stroke=(1, 0, 0) if flag.color == "red" else (1, 1, 0))
-                annotation.set_opacity(0.35)
+                if dismissed:
+                    annotation = page.add_text_annot(quads[0].ul, finding_note(flag, paper, review))
+                    annotation.set_colors(stroke=(0.55, 0.55, 0.55))
+                else:
+                    annotation = page.add_highlight_annot(quads)
+                    annotation.set_colors(stroke=(1, 0, 0) if flag.color == "red" else (1, 1, 0))
+                    annotation.set_opacity(0.35)
                 if notes:
                     annotation.set_info(
                         title="SPR Pre-Screen",

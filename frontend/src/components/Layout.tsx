@@ -6,7 +6,6 @@ import {
   WifiOff,
   PanelLeft,
   ListFilter,
-  BarChart3,
   Menu,
   X,
 } from "lucide-react";
@@ -23,7 +22,6 @@ export function Layout() {
           "/": "Batch Upload",
           "/rules": "Official rules",
           "/items": "Review by item",
-          "/scorecard": "Evaluation scorecard",
           "/system": "System status",
           "/offline": "Offline status",
         } as Record<string, string>
@@ -135,17 +133,12 @@ export function Layout() {
             <NavLink to="/" end>
               <PanelLeft size={18} /> Batch Upload
             </NavLink>
-            <NavLink to="/rules">
-              <BookOpen size={18} /> Official rules{" "}
-              <span className="nav-count">39</span>
-            </NavLink>
             <NavLink to="/items">
               <ListFilter size={18} />
               Review by item
             </NavLink>
-            <NavLink to="/scorecard">
-              <BarChart3 size={18} />
-              Evaluation scorecard
+            <NavLink to="/rules">
+              <BookOpen size={18} /> Official rules
             </NavLink>
             <NavLink to="/system">
               <Monitor size={18} /> System status

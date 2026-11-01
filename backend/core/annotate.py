@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 
 from backend.core.annotate_docx import annotate_docx
 from backend.core.annotate_pdf import annotate_pdf
@@ -17,6 +19,22 @@ from backend.core.models import PaperResult
 class AnnotatedCopy:
     data: bytes
     warnings: tuple[str, ...]
+
+
+@lru_cache(maxsize=1)
+def renderer_digest() -> str:
+    return hashlib.sha256(
+        b"".join(
+            (Path(__file__).parent / name).read_bytes()
+            for name in (
+                "annotate.py",
+                "annotate_pdf.py",
+                "annotate_docx.py",
+                "annotation_notes.py",
+                "word_annotations.py",
+            )
+        )
+    ).hexdigest()
 
 
 def annotate(

@@ -53,7 +53,9 @@ export function BatchDocuments({
         <>
           <p>
             Green papers await your approval. Red and yellow papers stay
-            together in Flagged. Copies keep the original PDF or Word format.
+            together in Flagged. Review copies keep the PDF or Word layout,
+            highlight pending and accepted flags, and remove overridden
+            highlights automatically.
           </p>
           <p className="folder-path">
             <code>{query.data.path}</code>

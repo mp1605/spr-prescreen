@@ -68,9 +68,9 @@ export function System() {
             <dt>Evaluation harness</dt>
             <dd>
               {status.sponsor_evaluation_state === "complete"
-                ? "Frozen evaluation complete · see scorecard"
+                ? "Archived evaluation complete"
                 : status.sponsor_evaluation_state === "error"
-                  ? "Stored report unavailable · see scorecard"
+                  ? "Stored report unavailable"
                   : "Prepared · no completed evaluation in this workspace"}
             </dd>
           </div>
@@ -127,12 +127,13 @@ export function System() {
           deadlines. Semantic thresholds remain uncalibrated. Generic topics,
           semantic-only matches, and judgment-dependent items remain yellow.
           Sponsor materials and reviewer feedback are excluded from matching.
-          Exports retain raw screening colors and reviewer decisions separately.
-          The Python socket airlock is active; Offline status shows connection
+          Review copies apply reviewer overrides to highlights. Original
+          findings and decisions remain preserved in the audit records. The
+          Python socket airlock is active; Offline status shows connection
           evidence and its verification boundaries.{" "}
           {status.sponsor_evaluation_state === "complete"
-            ? "The frozen evaluation missed accuracy targets; see the scorecard before relying on results."
-            : "The scorecard shows evaluation availability and any measured results."}
+            ? "The archived evaluation missed accuracy targets; human review remains necessary."
+            : "Independent accuracy validation remains necessary."}
         </p>
       </div>
     </>

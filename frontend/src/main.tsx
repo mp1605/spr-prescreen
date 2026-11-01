@@ -9,7 +9,6 @@ import { Rules } from "./pages/Rules";
 import { Offline } from "./pages/Offline";
 import { System } from "./pages/System";
 import { ReviewByItem } from "./pages/ReviewByItem";
-import { Scorecard } from "./pages/Scorecard";
 import "./style.css";
 import "./m11.css";
 
@@ -28,7 +27,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="system" element={<System />} />
             <Route path="offline" element={<Offline />} />
             <Route path="items" element={<ReviewByItem />} />
-            <Route path="scorecard" element={<Scorecard />} />
             <Route
               path="*"
               element={

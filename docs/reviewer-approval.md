@@ -10,7 +10,9 @@ For example: `2026-11-01_06-15-30-AM_12-files`. Times use America/Chicago, inclu
 - **Flagged**: all red and yellow documents together, including incomplete documents. Accepting or overriding flags does not move these into Approved.
 - **Approved**: complete green documents for which a reviewer entered their name and clicked **Mark reviewed & approve**.
 
-Files retain their original PDF/DOCX bytes and format. A numbered prefix prevents duplicate names from overwriting each other. Highlighted copies remain available through the existing Downloads controls. The scanner's private originals, raw findings, and original color remain preserved.
+Flagged documents are saved as highlighted review copies in their original PDF/DOCX format and layout. Pending and accepted flags retain their red/yellow highlights. Overriding a flag removes its highlight and records the reviewer decision in a comment; Undo restores the highlight. Folder copies update after each saved decision. A numbered prefix prevents duplicate names from overwriting each other. Green documents keep their original bytes. The scanner's private originals, raw findings, and original color remain preserved.
+
+Existing managed copies are upgraded from saved findings and decisions on app restart or through Update batch folders; this does not rerun screening or Ollama. The manifest records source and generated-file checksums, review revision and renderer version. Modified copies are preserved and reported rather than overwritten. Unreadable/signed documents that cannot be annotated retain an original copy with an explicit storage message requiring manual review.
 
 Approval records the reviewer, UTC timestamp, revision and event ID in the append-only review history and batch manifest. JSON and CSV reports also include human approval status. Approval is the reviewer's action; the scanner does not make a release decision automatically. Reviewer names are local audit labels, not authenticated identities.
 

@@ -26,7 +26,8 @@ class ExportReport(StrictModel):
     source_integrity: dict[str, SourceIntegrity]
     reviews: dict[str, ReviewState]
     annotation_convention: str = (
-        "Red/yellow retain raw screening colors, including overridden flags. "
+        "Pending and accepted findings retain red/yellow highlights; overridden highlights "
+        "are removed. Raw findings and reviewer decisions remain in the audit report. "
         "Reviewer decisions remain separate. Green means no flags found, not a release decision."
     )
 
@@ -44,6 +45,7 @@ class AnnotationManifest(StrictModel):
     review_revision: int = Field(ge=0)
     created_utc: datetime
     findings_annotated: int = Field(ge=0)
+    overridden_findings: int = Field(default=0, ge=0)
     notes_included: bool = False
     warnings: tuple[str, ...]
     disclaimer: str

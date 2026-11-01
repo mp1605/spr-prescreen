@@ -17,7 +17,7 @@ ai:
   context_tokens: 32768
   max_output_tokens: 2048
   endpoint: http://127.0.0.1:11434
-  timeout_seconds: 20
+  timeout_seconds: 60
 evaluation:
   mode: blind
   sponsor_material_access: false

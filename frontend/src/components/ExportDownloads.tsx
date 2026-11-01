@@ -95,7 +95,7 @@ export function ExportDownloads({
       setWarnings(manifest?.warnings ?? []);
       setMessage(
         kind === "annotated"
-          ? `Highlighted copy downloaded · review revision ${revision ?? manifest?.review_revision}. Raw screening colors retained.`
+          ? `Review copy downloaded · revision ${revision ?? manifest?.review_revision}. Overridden highlights removed; other flags retain their screening colors.`
           : kind === "annotation-manifest"
             ? "Copy details downloaded, including original and annotated SHA-256 hashes."
             : "Batch summary downloaded: one row per paper, with scanner results.",

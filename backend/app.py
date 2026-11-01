@@ -69,6 +69,7 @@ def create_app(
     folders = BatchFolders(service.store)
     folders.migrate_existing()
     reviews = ReviewStore(service.store, folders)
+    folders.refresh_existing(reviews.states)
 
     def organize(run_id: str, entry_id: str) -> None:
         batch = service.store.read(run_id)
@@ -194,7 +195,7 @@ def create_app(
 
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str) -> FileResponse:
-        if path not in ("", "rules", "system", "offline", "items", "scorecard") and not (
+        if path not in ("", "rules", "system", "offline", "items") and not (
             path.startswith("review/") and len(path.split("/")) == 3
         ):
             raise HTTPException(status_code=404, detail="Route not found")

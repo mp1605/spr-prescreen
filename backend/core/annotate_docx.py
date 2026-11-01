@@ -10,7 +10,7 @@ from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import nsdecls, qn
 from lxml import etree  # type: ignore[import-untyped]
 
-from backend.core.annotation_notes import AnnotationError, finding_note, summary_note
+from backend.core.annotation_notes import AnnotationError, finding_note, overridden, summary_note
 from backend.core.batch_models import ReviewState
 from backend.core.docx_ingest import _story_names, validate_archive
 from backend.core.ingest_models import IngestLimits, ParseResult
@@ -144,6 +144,9 @@ def annotate_docx(
         # Parser stops early on resource limits; never guess the unparsed remainder's coordinates.
         units = {u.paragraph: u for u in parsed.units}
         flags_by_paragraph: dict[int, list[Finding]] = {}
+        suppressed = frozenset(
+            flag.finding_id for flag in paper.findings if overridden(flag, review)
+        )
         for flag in paper.findings:
             if flag.location.paragraph is None or flag.location.paragraph not in units:
                 raise AnnotationError("Word evidence has no parsed paragraph.")
@@ -176,7 +179,7 @@ def annotate_docx(
             unit = units[index + 1]
             if unit.part != part:
                 raise AnnotationError("Word story identity no longer matches its evidence.")
-            pieces = annotate_paragraph(node, unit.text, flags)
+            pieces = annotate_paragraph(node, unit.text, flags, suppressed=suppressed)
             changed_parts.add(part)
             for flag in flags:
                 covered = [
@@ -202,10 +205,10 @@ def annotate_docx(
                 else:
                     label = f"{part}, paragraph {index + 1}"
                     fallback.append(
-                        f"Highlighted in {label}. Comment placed on the document summary.\n" + note
+                        f"Evidence in {label}. Comment placed on the document summary.\n" + note
                     )
                     warnings.append(
-                        f"{flag.finding_id}: highlighted in {label}; note on document summary."
+                        f"{flag.finding_id}: evidence in {label}; note on document summary."
                     )
         if comments is not None:
             assert summary_paragraph is not None

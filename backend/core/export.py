@@ -10,8 +10,8 @@ from pathlib import Path
 from threading import RLock
 
 from backend.cli_io import write_report
-from backend.core.annotate import annotate
-from backend.core.annotation_notes import AnnotationError
+from backend.core.annotate import annotate, renderer_digest
+from backend.core.annotation_notes import AnnotationError, overridden
 from backend.core.export_csv import report_csv
 from backend.core.export_io import write_binary
 from backend.core.export_models import AnnotationManifest, ExportReport, SourceIntegrity
@@ -121,18 +121,7 @@ class ExportService:
                     [
                         "annotation-v2",
                         notes,
-                        hashlib.sha256(
-                            b"".join(
-                                (Path(__file__).parent / name).read_bytes()
-                                for name in (
-                                    "annotate.py",
-                                    "annotate_pdf.py",
-                                    "annotate_docx.py",
-                                    "annotation_notes.py",
-                                    "word_annotations.py",
-                                )
-                            )
-                        ).hexdigest(),
+                        renderer_digest(),
                         paper.model_dump(mode="json"),
                         review.model_dump(mode="json"),
                     ],
@@ -167,7 +156,8 @@ class ExportService:
                 ai_state=paper.ai_state,
                 review_revision=review.revision,
                 created_utc=datetime.now(UTC),
-                findings_annotated=len(paper.findings),
+                findings_annotated=sum(not overridden(flag, review) for flag in paper.findings),
+                overridden_findings=sum(overridden(flag, review) for flag in paper.findings),
                 notes_included=notes,
                 warnings=artifact.warnings,
                 disclaimer=DISCLAIMER,
